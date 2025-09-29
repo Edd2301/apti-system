@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Lease - APTI Property Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../common/css/style.css">
+</head>
+<body class="admin-theme">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="dashboard.html" class="nav-brand">APTI Admin</a>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a href="units.html">Units</a></li>
+                    <li class="nav-item"><a href="tenants.html">Tenants</a></li>
+                    <li class="nav-item"><a href="bills.html">Bills</a></li>
+                    <li class="nav-item"><a href="payment.html">Payments</a></li>
+                    <li class="nav-item"><a href="maintenance.html">Maintenance</a></li>
+                    <li class="nav-item"><a href="document_lease.html" class="active">Document Lease</a></li>
+                    <li class="nav-item"><a href="sms_email.html" class="active">Communications</a></li>
+                </ul>
+                <div class="nav-user">
+                    <span id="userGreeting">Welcome, Admin</span>
+                    <button onclick="APTI_Auth.logout('admin')" class="btn btn-outline" style="margin-left: 1rem;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container" style="padding: 2rem 1rem;">
+        <div class="flex-between mb-4">
+            <div>
+                <h1>Manage Lease Documents</h1>
+                <p>View and manage all lease documents for tenants.</p>
+            </div>
+            <button onclick="openUploadModal()" class="btn btn-primary">Upload New Document</button>
+        </div>
+
+        <!-- Lease Documents Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Lease Documents List</h3>
+            </div>
+            <div id="documentsTableContainer">
+                <div class="table-container">
+                    <table class="table" id="documentsTable">
+                        <thead>
+                            <tr>
+                                <th>Tenant Name</th>
+                                <th>Upload Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsTableBody">
+                            <!-- Lease documents will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noDocumentsMessage" class="hidden text-center p-4">
+                    <p>No lease documents found. <a href="#" onclick="openUploadModal()">Upload your first document</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Document Modal -->
+    <div id="uploadModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Upload Lease Document</h3>
+                <button onclick="closeModal()" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm" onsubmit="handleUploadSubmit(event)">
+                    <div class="form-group">
+                        <label class="form-label">Select Document *</label>
+                        <input type="file" id="documentFile" name="documentFile" class="form-input" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" onclick="closeModal()" class="btn btn-outline">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload Document</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../common/js/util.js"></script>
+    <script src="../common/js/auth.js"></script>
+    <script src="../common/js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!APTI_Auth.checkAuthentication('admin')) {
+                return;
+            }
+
+            // Load user info
+            const currentUser = APTI_Auth.getCurrentUser('admin');
+            if (currentUser) {
+                document.getElementById('userGreeting').textContent = `Welcome, ${currentUser.name}`;
+            }
+
+            // Load lease documents
+            loadLeaseDocuments();
+        });
+
+        async function loadLeaseDocuments() {
+            try {
+                const result = await APTI_Admin.LeaseDocumentsManager.getAll();
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                const documents = result.data;
+                const tableBody = document.getElementById('documentsTableBody');
+                const noDocumentsMessage = document.getElementById('noDocumentsMessage');
+
+                if (!documents || documents.length === 0) {
+                    tableBody.innerHTML = '';
+                    noDocumentsMessage.classList.remove('hidden');
+                    return;
+                }
+
+                noDocumentsMessage.classList.add('hidden');
+                tableBody.innerHTML = documents.map(doc => `
+                    <tr>
+                        <td>${doc.tenantName}</td>
+                        <td>${new Date(doc.uploadedAt).toLocaleDateString()}</td>
+                        <td>
+                            <button onclick="viewDocument('${doc.id}')" class="btn btn-sm btn-outline">View</button>
+                            <button onclick="deleteDocument('${doc.id}', '${doc.documentName}')" class="btn btn-sm btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading lease documents:', error);
+                APTI_Utils.showError(document.getElementById('documentsTableContainer'), 'Failed to load lease documents');
+            }
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+        }
+
+        async function handleUploadSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const file = formData.get('documentFile');
+
+            if (!file) {
+                APTI_Utils.showError(document.getElementById('uploadModal'), 'Please select a file to upload');
+                return;
+            }
+
+            try {
+                // For demonstration, we'll use mock document data
+                const documentData = {
+                    tenantId: 'tenant1', // This would come from a form in a real implementation
+                    documentName: file.name,
+                    startDate: new Date().toISOString().split('T')[0],
+                    endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+                    status: 'active'
+                };
+
+                const result = await APTI_Admin.LeaseDocumentsManager.create(documentData, file);
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                APTI_Utils.showSuccess(document.getElementById('documentsTableContainer'), 'Document uploaded successfully');
+                closeModal();
+                loadLeaseDocuments(); // Refresh the document list
+            } catch (error) {
+                console.error('Error uploading document:', error);
+                APTI_Utils.showError(document.getElementById('uploadModal'), error.message);
+            }
+        }
+
+        async function viewDocument(documentId) {
+            try {
+                const result = await APTI_Admin.LeaseDocumentsManager.download(documentId);
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                const document = result.data;
+                // In a real implementation, this would open the document
+                // For now, we'll just show an alert
+                alert(`Viewing document: ${document.documentName}\nTenant: ${document.tenantName}`);
+            } catch (error) {
+                console.error('Error viewing document:', error);
+                APTI_Utils.showError(document.getElementById('documentsTableContainer'), 'Failed to view document');
+            }
+        }
+
+        async function deleteDocument(documentId, documentName) {
+            if (!confirm(`Are you sure you want to delete the document "${documentName}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const result = await APTI_Admin.LeaseDocumentsManager.delete(documentId);
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                APTI_Utils.showSuccess(document.getElementById('documentsTableContainer'), 'Document deleted successfully');
+                loadLeaseDocuments(); // Refresh the document list
+            } catch (error) {
+                console.error('Error deleting document:', error);
+                APTI_Utils.showError(document.getElementById('documentsTableContainer'), 'Failed to delete document');
+            }
+        }
+    </script>
+</body>
+</html>

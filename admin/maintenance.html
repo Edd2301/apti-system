@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - APTI Property Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../common/css/style.css">
+</head>
+<body class="admin-theme">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="dashboard.html" class="nav-brand">APTI Admin</a>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a href="units.html">Units</a></li>
+                    <li class="nav-item"><a href="tenants.html">Tenants</a></li>
+                    <li class="nav-item"><a href="bills.html">Bills</a></li>
+                    <li class="nav-item"><a href="payment.html">Payments</a></li>
+                    <li class="nav-item"><a href="maintenance.html">Maintenance</a></li>
+                    <li class="nav-item"><a href="document_lease.html">Document Lease</a></li>
+                    <li class="nav-item"><a href="sms_email.html" class="active">Communications</a></li>
+                </ul>
+                <div class="nav-user">
+                    <span id="userGreeting">Welcome, Admin</span>
+                    <button onclick="APTI_Auth.logout('admin')" class="btn btn-outline" style="margin-left: 1rem;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container" style="padding: 2rem 1rem;">
+        <div class="mb-4">
+            <h1>Maintenance Management</h1>
+            <p>Manage maintenance requests and track repair status</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalRequests">0</div>
+                <div class="stat-label">Total Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingRequests">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="inProgressRequests">0</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedRequests">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Maintenance Requests Grid -->
+        <div class="card">
+            <div class="card-header flex-between">
+                <h3 class="card-title">Maintenance Requests</h3>
+                <div>
+                    <button onclick="toggleFilters()" class="btn btn-outline" style="margin-right: 0.5rem;">Filters</button>
+                    <button onclick="toggleRequestForm()" class="btn btn-primary">New Request</button>
+                </div>
+            </div>
+            
+            <!-- Filters Section -->
+            <div id="filtersSection" class="hidden" style="padding: 1rem; border-bottom: 1px solid #4a4a5e;">
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label for="statusFilter" class="form-label">Status</label>
+                        <select id="statusFilter" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="priorityFilter" class="form-label">Priority</label>
+                        <select id="priorityFilter" class="form-select">
+                            <option value="">All Priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="searchFilter" class="form-label">Search</label>
+                        <input type="text" id="searchFilter" class="form-input" placeholder="Search requests...">
+                    </div>
+                </div>
+                <div class="text-right" style="margin-top: 1rem;">
+                    <button onclick="applyFilters()" class="btn btn-primary">Apply Filters</button>
+                    <button onclick="clearFilters()" class="btn btn-outline" style="margin-left: 0.5rem;">Clear</button>
+                </div>
+            </div>
+
+            <div id="maintenanceRequestsList" class="grid grid-2" style="padding: 1rem;">
+                <!-- Maintenance requests will be populated here -->
+            </div>
+        </div>
+
+        <!-- New Request Form -->
+        <div id="requestForm" class="card hidden">
+            <div class="card-header">
+                <h3 class="card-title">Add New Maintenance Request</h3>
+            </div>
+            <div style="padding: 1rem;">
+                <form id="maintenanceForm">
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="issue" class="form-label">Issue Title</label>
+                            <input type="text" id="issue" class="form-input" placeholder="e.g., Leaky faucet" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select id="priority" class="form-select" required>
+                                <option value="">Select Priority</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" class="form-textarea" placeholder="Describe the issue in detail..." rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenanceImage" class="form-label">Upload Photo (Optional)</label>
+                        <input type="file" id="maintenanceImage" class="form-input" accept="image/*">
+                    </div>
+                    <div class="flex-between">
+                        <button type="button" onclick="toggleRequestForm()" class="btn btn-outline">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Maintenance Activity</h3>
+            </div>
+            <div id="recentMaintenanceActivity" style="padding: 1rem;">
+                <!-- Recent activity will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot -->
+    <button class="chatbot-button" onclick="openChatbot()">💬</button>
+    <div id="chatbotWindow" class="chatbot-window hidden">
+        <div class="chatbot-header">
+            <span>APTI Assistant</span>
+            <button onclick="closeChatbot()" style="float: right; background: none; border: none; color: inherit; cursor: pointer;">×</button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div style="padding: 0.5rem; background: rgba(79, 70, 229, 0.1); border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                This is the maintenance management message receiver. Messages from tenants will appear here.
+            </div>
+        </div>
+        <div class="chatbot-input" style="display: none;">
+            <input type="text" id="chatbotInput" placeholder="Type your message..." class="form-input" disabled>
+            <button onclick="sendChatMessage()" class="btn btn-primary" disabled>Send</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="../common/js/firebase-config.js"></script>
+    <script src="../common/js/util.js"></script>
+    <script src="../common/js/auth.js"></script>
+    <script src="../common/js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check Firebase authentication state
+            auth.onAuthStateChanged(function(user) {
+                if (!user) {
+                    // User is not authenticated, redirect to login
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // User is authenticated, load page
+                console.log('User authenticated:', user.email);
+
+                // Load user info
+                if (user.displayName) {
+                    document.getElementById('userGreeting').textContent = `Welcome, ${user.displayName}`;
+                } else if (user.email) {
+                    document.getElementById('userGreeting').textContent = `Welcome, ${user.email.split('@')[0]}`;
+                }
+
+                // Load maintenance data
+                loadMaintenanceStats();
+                loadMaintenanceRequests();
+                loadRecentActivity();
+
+                // Setup form submission
+                document.getElementById('maintenanceForm').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    submitMaintenanceRequest();
+                });
+
+                // Setup filter event listeners
+                document.getElementById('statusFilter').addEventListener('change', applyFilters);
+                document.getElementById('priorityFilter').addEventListener('change', applyFilters);
+                document.getElementById('searchFilter').addEventListener('input', applyFilters);
+            });
+        });
+
+        function loadMaintenanceStats() {
+            APTI_Admin.MaintenanceManager.getAll()
+                .then(response => {
+                    if (response.success) {
+                        const requests = response.data;
+                        const total = requests.length;
+                        const pending = requests.filter(r => r.status === 'pending').length;
+                        const inProgress = requests.filter(r => r.status === 'in-progress').length;
+                        const completed = requests.filter(r => r.status === 'completed').length;
+
+                        document.getElementById('totalRequests').textContent = total;
+                        document.getElementById('pendingRequests').textContent = pending;
+                        document.getElementById('inProgressRequests').textContent = inProgress;
+                        document.getElementById('completedRequests').textContent = completed;
+                    }
+                });
+        }
+
+        function loadMaintenanceRequests(filters = {}) {
+            APTI_Admin.MaintenanceManager.getAll(filters)
+                .then(response => {
+                    const listContainer = document.getElementById('maintenanceRequestsList');
+                    listContainer.innerHTML = '';
+
+                    if (response.success && response.data.length > 0) {
+                        response.data.forEach(request => {
+                            const requestElement = document.createElement('div');
+                            requestElement.className = 'card';
+                            requestElement.style.marginBottom = '1rem';
+                            
+                            const priorityBadge = getPriorityBadge(request.priority);
+                            const statusBadge = getStatusBadge(request.status);
+                            
+                            requestElement.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                    <h4 style="margin: 0;">${request.issue}</h4>
+                                    <div>
+                                        ${priorityBadge}
+                                        ${statusBadge}
+                                    </div>
+                                </div>
+                                <p style="color: var(--admin-text-secondary); margin-bottom: 0.5rem;">${request.description}</p>
+                                <div style="font-size: 0.875rem; color: var(--admin-text-secondary); margin-bottom: 1rem;">
+                                    <div>Unit: ${request.unitNumber || 'N/A'}</div>
+                                    <div>Tenant: ${request.tenantName || 'N/A'}</div>
+                                    <div>Created: ${new Date(request.createdAt).toLocaleDateString()}</div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    ${request.status !== 'completed' ? `
+                                        <button onclick="updateRequestStatus('${request.id}', 'in-progress')" class="btn btn-secondary">Start Work</button>
+                                        <button onclick="updateRequestStatus('${request.id}', 'completed')" class="btn btn-success">Complete</button>
+                                    ` : ''}
+                                    <button onclick="deleteRequest('${request.id}')" class="btn btn-danger">Delete</button>
+                                </div>
+                            `;
+                            listContainer.appendChild(requestElement);
+                        });
+                    } else {
+                        listContainer.innerHTML = `
+                            <div style="text-align: center; padding: 2rem; color: var(--admin-text-secondary);">
+                                <h4>No maintenance requests found</h4>
+                                <p>Click "New Request" to create your first maintenance request</p>
+                            </div>
+                        `;
+                    }
+                });
+        }
+
+        function loadRecentActivity() {
+            APTI_Admin.MaintenanceManager.getAll()
+                .then(response => {
+                    const activityContainer = document.getElementById('recentMaintenanceActivity');
+                    activityContainer.innerHTML = '';
+
+                    if (response.success && response.data.length > 0) {
+                        // Get recent requests (last 5)
+                        const recentRequests = response.data
+                            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                            .slice(0, 5);
+
+                        recentRequests.forEach(request => {
+                            const activityItem = document.createElement('div');
+                            activityItem.style.cssText = 'padding: 0.5rem 0; border-bottom: 1px solid #4a4a5e;';
+                            
+                            const statusChange = request.status === 'completed' ? 'completed' : 
+                                                request.status === 'in-progress' ? 'started work on' : 'created';
+                            
+                            activityItem.innerHTML = `
+                                <div style="font-weight: 500;">${statusChange} maintenance request</div>
+                                <div style="font-size: 0.875rem; color: var(--admin-text-secondary);">
+                                    ${request.issue} - ${request.unitNumber || 'N/A'}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--admin-text-secondary);">
+                                    ${new Date(request.updatedAt).toLocaleString()}
+                                </div>
+                            `;
+                            activityContainer.appendChild(activityItem);
+                        });
+                    } else {
+                        activityContainer.innerHTML = `
+                            <div style="text-align: center; padding: 1rem; color: var(--admin-text-secondary);">
+                                No recent maintenance activity
+                            </div>
+                        `;
+                    }
+                });
+        }
+
+        function submitMaintenanceRequest() {
+            const issue = document.getElementById('issue').value;
+            const description = document.getElementById('description').value;
+            const priority = document.getElementById('priority').value;
+            const imageFile = document.getElementById('maintenanceImage').files[0];
+
+            if (!issue || !description || !priority) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            const requestData = { issue, description, priority };
+
+            APTI_Admin.MaintenanceManager.create(requestData)
+                .then(response => {
+                    if (response.success) {
+                        showSuccess('Maintenance request submitted successfully!');
+                        document.getElementById('maintenanceForm').reset();
+                        toggleRequestForm();
+                        loadMaintenanceStats();
+                        loadMaintenanceRequests();
+                        loadRecentActivity();
+                    } else {
+                        showError('Error submitting request: ' + response.error);
+                    }
+                });
+        }
+
+        function updateRequestStatus(id, status) {
+            APTI_Admin.MaintenanceManager.updateStatus(id, status)
+                .then(response => {
+                    if (response.success) {
+                        showSuccess(`Request ${status === 'completed' ? 'completed' : 'updated'} successfully`);
+                        loadMaintenanceStats();
+                        loadMaintenanceRequests();
+                        loadRecentActivity();
+                    } else {
+                        showError('Error updating request: ' + response.error);
+                    }
+                });
+        }
+
+        function deleteRequest(id) {
+            if (confirm('Are you sure you want to delete this maintenance request?')) {
+                APTI_Admin.MaintenanceManager.delete(id)
+                    .then(response => {
+                        if (response.success) {
+                            showSuccess('Request deleted successfully');
+                            loadMaintenanceStats();
+                            loadMaintenanceRequests();
+                            loadRecentActivity();
+                        } else {
+                            showError('Error deleting request: ' + response.error);
+                        }
+                    });
+            }
+        }
+
+        function toggleFilters() {
+            const filtersSection = document.getElementById('filtersSection');
+            filtersSection.classList.toggle('hidden');
+        }
+
+        function toggleRequestForm() {
+            const requestForm = document.getElementById('requestForm');
+            requestForm.classList.toggle('hidden');
+        }
+
+        function applyFilters() {
+            const status = document.getElementById('statusFilter').value;
+            const priority = document.getElementById('priorityFilter').value;
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+
+            const filters = {};
+            if (status) filters.status = status;
+            if (priority) filters.priority = priority;
+
+            loadMaintenanceRequests(filters);
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('priorityFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            loadMaintenanceRequests();
+        }
+
+        function getPriorityBadge(priority) {
+            const badges = {
+                high: '<span class="badge badge-danger">High</span>',
+                medium: '<span class="badge badge-warning">Medium</span>',
+                low: '<span class="badge badge-success">Low</span>'
+            };
+            return badges[priority] || '<span class="badge badge-info">Unknown</span>';
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                pending: '<span class="badge badge-warning">Pending</span>',
+                'in-progress': '<span class="badge badge-info">In Progress</span>',
+                completed: '<span class="badge badge-success">Completed</span>'
+            };
+            return badges[status] || '<span class="badge badge-info">Unknown</span>';
+        }
+
+        function showError(message) {
+            APTI_Utils.showError(document.body, message);
+        }
+
+        function showSuccess(message) {
+            APTI_Utils.showSuccess(document.body, message);
+        }
+
+        // Chatbot functions
+        function closeChatbot() {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            chatbotWindow.style.display = 'none';
+            chatbotWindow.classList.add('hidden');
+        }
+
+        function openChatbot() {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            chatbotWindow.style.display = 'block';
+            chatbotWindow.classList.remove('hidden');
+            document.getElementById('chatbotInput').focus();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatbotInput');
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.style.cssText = 'padding: 0.5rem; background: var(--primary-color); color: white; border-radius: 0.5rem; margin-bottom: 0.5rem; margin-left: 2rem; text-align: right;';
+            userMessage.textContent = message;
+            messagesContainer.appendChild(userMessage);
+            
+            // Clear input
+            input.value = '';
+            
+            // Simulate bot response
+            setTimeout(() => {
+                const botMessage = document.createElement('div');
+                botMessage.style.cssText = 'padding: 0.5rem; background: rgba(79, 70, 229, 0.1); border-radius: 0.5rem; margin-bottom: 0.5rem;';
+                
+                // Maintenance-specific FAQ responses
+                const responses = {
+                    'maintenance': 'I can help you with maintenance requests. You can view all requests, create new ones, or update existing ones.',
+                    'request': 'To create a maintenance request, click the "New Request" button and fill out the form with the issue details.',
+                    'status': 'You can update maintenance request status by clicking the appropriate buttons next to each request.',
+                    'priority': 'Maintenance requests can be set to High, Medium, or Low priority based on urgency.',
+                    'default': 'I understand you\'re asking about maintenance management. You can create new requests, track existing ones, or ask me specific questions about maintenance processes.'
+                };
+                
+                const lowerMessage = message.toLowerCase();
+                let response = responses.default;
+                
+                for (const key in responses) {
+                    if (lowerMessage.includes(key)) {
+                        response = responses[key];
+                        break;
+                    }
+                }
+                
+                botMessage.textContent = response;
+                messagesContainer.appendChild(botMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1000);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Handle Enter key in chatbot input
+        document.getElementById('chatbotInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APTI - Property Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="common/css/style.css">
+</head>
+<body>
+    <div class="landing-container">
+        <div class="landing-content">
+            <div class="logo-section">
+                <img src="common/Logo for Apartment Management.png" alt="APTI Property Management System Logo" class="logo" onerror="this.style.display='none';" />
+                <h1>APTI Property Management</h1>
+                <p>Streamline your property management with our comprehensive solution</p>
+            </div>
+            
+            <div class="login-options">
+                <div class="login-card">
+                    <h2>Admin Portal</h2>
+                    <p>Manage properties, tenants, and operations</p>
+                    <button onclick="redirectTo('admin/login.html')" class="btn btn-primary">Admin Login</button>
+                </div>
+                
+                <div class="login-card">
+                    <h2>Tenant Portal</h2>
+                    <p>Access your account, pay bills, and submit requests</p>
+                    <button onclick="redirectTo('../tenant/login.html')" class="btn btn-secondary">Tenant Login</button>
+                </div>
+            </div>
+            
+            <div class="features-preview">
+                <h3>System Features</h3>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <h4>Property Management</h4>
+                        <p>Comprehensive unit and tenant management</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Billing & Payments</h4>
+                        <p>Automated billing and secure payment processing</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Maintenance Tracking</h4>
+                        <p>Efficient maintenance request management</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Communication Hub</h4>
+                        <p>SMS, email, and announcement system</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function redirectTo(url) {
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

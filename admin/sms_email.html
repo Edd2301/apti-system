@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communication Dashboard - APTI Admin</title>
+    <link rel="stylesheet" href="../common/css/style.css">
+</head>
+<body class="admin-theme">
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="dashboard.html" class="nav-brand">APTI Admin</a>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a href="units.html">Units</a></li>
+                    <li class="nav-item"><a href="tenants.html">Tenants</a></li>
+                    <li class="nav-item"><a href="bills.html">Bills</a></li>
+                    <li class="nav-item"><a href="payment.html">Payments</a></li>
+                    <li class="nav-item"><a href="maintenance.html">Maintenance</a></li>
+                    <li class="nav-item"><a href="document_lease.html">Document Lease</a></li>
+                    <li class="nav-item"><a href="sms_email.html" class="active">Communications</a></li>
+                </ul>
+                <div class="nav-user">
+                    <span id="userGreeting">Welcome, Admin</span>
+                    <button onclick="APTI_Auth.logout('admin')" class="btn btn-outline" style="margin-left: 1rem;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="padding: 2rem 1rem;">
+        <div class="flex-between mb-4">
+            <h1>Communication Dashboard</h1>
+            <div class="flex" style="gap: 0.5rem;">
+                <button class="btn btn-outline" onclick="showTab('dashboard')">Dashboard</button>
+                <button class="btn btn-outline" onclick="showTab('send')">Send Message</button>
+                <button class="btn btn-outline" onclick="showTab('history')">History</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Statistics -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid mb-4">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMessages">0</div>
+                    <div class="stat-label">Total Messages Sent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="successRate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="smsCount">0</div>
+                    <div class="stat-label">SMS Messages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="emailCount">0</div>
+                    <div class="stat-label">Email Messages</div>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Activity</h3>
+                    </div>
+                    <div id="recentActivity" class="p-3">
+                        <p class="text-center">No recent activity</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Actions</h3>
+                    </div>
+                    <div class="p-3">
+                        <button class="btn btn-primary mb-2" style="width: 100%;" onclick="showTab('send')">
+                            Send New Message
+                        </button>
+                        <button class="btn btn-secondary mb-2" style="width: 100%;" onclick="loadTemplates()">
+                            Manage Templates
+                        </button>
+                        <button class="btn btn-outline" style="width: 100%;" onclick="showTab('history')">
+                            View Message History
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Message Tab -->
+        <div id="send" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Send Message</h3>
+                </div>
+                <div class="p-3">
+                    <div class="tabs mb-3">
+                        <button class="tab-button active" onclick="showMessageTab('sms')">SMS</button>
+                        <button class="tab-button" onclick="showMessageTab('email')">Email</button>
+                    </div>
+
+                    <div id="sms" class="message-tab-content active">
+                        <div class="form-group">
+                            <label class="form-label">Recipients:</label>
+                            <div class="recipient-selector">
+                                <select id="smsRecipients" multiple class="form-select" style="height: 120px;">
+                                    <option value="tenant1">John Doe (A101)</option>
+                                    <option value="tenant2">Jane Smith (A102)</option>
+                                    <option value="tenant3">Bob Johnson (B201)</option>
+                                    <option value="all">All Tenants</option>
+                                    <option value="occupied">Occupied Units Only</option>
+                                </select>
+                                <div class="flex-between mt-2">
+                                    <span id="smsRecipientCount">0 recipients selected</span>
+                                    <button class="btn btn-outline btn-sm" onclick="clearSelection('smsRecipients')">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Message:</label>
+                            <div class="flex-between mb-2">
+                                <span id="smsCharCount">0/160 characters</span>
+                                <button class="btn btn-outline btn-sm" onclick="loadTemplate('sms')">Load Template</button>
+                            </div>
+                            <textarea id="smsMessage" rows="6" placeholder="Enter your SMS message here..." 
+                                     class="form-textarea" oninput="updateCharCount('sms')"></textarea>
+                        </div>
+
+                        <div class="flex-between">
+                            <button class="btn btn-outline" onclick="saveTemplate('sms')">Save as Template</button>
+                            <button class="btn btn-primary" onclick="sendSMS()" id="smsSendBtn">
+                                Send SMS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="email" class="message-tab-content">
+                        <div class="form-group">
+                            <label class="form-label">Recipients:</label>
+                            <div class="recipient-selector">
+                                <select id="emailRecipients" multiple class="form-select" style="height: 120px;">
+                                    <option value="tenant1">John Doe (john@example.com)</option>
+                                    <option value="tenant2">Jane Smith (jane@example.com)</option>
+                                    <option value="tenant3">Bob Johnson (bob@example.com)</option>
+                                    <option value="all">All Tenants</option>
+                                </select>
+                                <div class="flex-between mt-2">
+                                    <span id="emailRecipientCount">0 recipients selected</span>
+                                    <button class="btn btn-outline btn-sm" onclick="clearSelection('emailRecipients')">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Subject:</label>
+                            <input type="text" id="emailSubject" placeholder="Enter email subject..." class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Message:</label>
+                            <div class="flex-between mb-2">
+                                <span>Email Message</span>
+                                <button class="btn btn-outline btn-sm" onclick="loadTemplate('email')">Load Template</button>
+                            </div>
+                            <textarea id="emailMessage" rows="8" placeholder="Enter your email message here..." 
+                                     class="form-textarea"></textarea>
+                        </div>
+
+                        <div class="flex-between">
+                            <button class="btn btn-outline" onclick="saveTemplate('email')">Save as Template</button>
+                            <button class="btn btn-primary" onclick="sendEmail()" id="emailSendBtn">
+                                Send Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history" class="tab-content">
+            <div class="card">
+                <div class="card-header flex-between">
+                    <h3 class="card-title">Message History</h3>
+                    <div class="flex" style="gap: 0.5rem;">
+                        <select id="historyFilter" class="form-select" style="width: auto;">
+                            <option value="all">All Messages</option>
+                            <option value="sms">SMS Only</option>
+                            <option value="email">Email Only</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                        </select>
+                        <button class="btn btn-outline btn-sm" onclick="refreshHistory()">Refresh</button>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Recipients</th>
+                                    <th>Subject</th>
+                                    <th>Message</th>
+                                    <th>Status</th>
+                                    <th>Sent At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable">
+                                <tr>
+                                    <td colspan="6" class="text-center">No messages sent yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Modal (to be implemented) -->
+    <div id="templateModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Message Templates</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Templates functionality coming soon...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../common/js/util.js"></script>
+    <script src="../common/js/admin.js"></script>
+    <script>
+        // Initialize communication data
+        let communicationData = {
+            messages: [],
+            templates: [],
+            analytics: {
+                total: 0,
+                sms: 0,
+                email: 0,
+                success: 0
+            }
+        };
+
+        // Tab management
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.btn-outline');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'dashboard') {
+                loadDashboardStats();
+            } else if (tabName === 'history') {
+                loadMessageHistory();
+            }
+        }
+
+        function showMessageTab(tabName) {
+            const tabs = document.querySelectorAll('.message-tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(button => button.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Recipient management
+        function updateRecipientCount(selectId) {
+            const select = document.getElementById(selectId);
+            const count = Array.from(select.selectedOptions).length;
+            document.getElementById(selectId + 'Count').textContent = 
+                count + (count === 1 ? ' recipient' : ' recipients') + ' selected';
+        }
+
+        function clearSelection(selectId) {
+            const select = document.getElementById(selectId);
+            Array.from(select.options).forEach(option => option.selected = false);
+            updateRecipientCount(selectId);
+        }
+
+        // Character count for SMS
+        function updateCharCount(type) {
+            if (type === 'sms') {
+                const message = document.getElementById('smsMessage').value;
+                const count = message.length;
+                document.getElementById('smsCharCount').textContent = 
+                    count + '/160 characters';
+                
+                // Warn if approaching limit
+                if (count > 140) {
+                    document.getElementById('smsCharCount').style.color = 'var(--warning-color)';
+                } else {
+                    document.getElementById('smsCharCount').style.color = 'inherit';
+                }
+            }
+        }
+
+        // Message sending
+        async function sendSMS() {
+            const recipients = Array.from(document.getElementById('smsRecipients').selectedOptions).map(option => option.value);
+            const message = document.getElementById('smsMessage').value;
+            const btn = document.getElementById('smsSendBtn');
+
+            if (recipients.length === 0) {
+                alert('Please select at least one recipient');
+                return;
+            }
+
+            if (!message.trim()) {
+                alert('Please enter a message');
+                return;
+            }
+
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+
+            try {
+                const response = await CommunicationManager.sendSMS(recipients, message);
+                if (response.success) {
+                    // Add to history
+                    addToHistory({
+                        type: 'sms',
+                        recipients: recipients,
+                        message: message,
+                        status: 'sent',
+                        sentAt: new Date()
+                    });
+                    
+                    alert('SMS sent successfully to ' + recipients.length + ' recipients');
+                    document.getElementById('smsMessage').value = '';
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            } catch (error) {
+                alert('Error sending SMS: ' + error.message);
+            } finally {
+                btn.textContent = 'Send SMS';
+                btn.disabled = false;
+            }
+        }
+
+        async function sendEmail() {
+            const recipients = Array.from(document.getElementById('emailRecipients').selectedOptions).map(option => option.value);
+            const subject = document.getElementById('emailSubject').value;
+            const message = document.getElementById('emailMessage').value;
+            const btn = document.getElementById('emailSendBtn');
+
+            if (recipients.length === 0) {
+                alert('Please select at least one recipient');
+                return;
+            }
+
+            if (!subject.trim()) {
+                alert('Please enter a subject');
+                return;
+            }
+
+            if (!message.trim()) {
+                alert('Please enter a message');
+                return;
+            }
+
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+
+            try {
+                const response = await CommunicationManager.sendEmail(recipients, subject, message);
+                if (response.success) {
+                    // Add to history
+                    addToHistory({
+                        type: 'email',
+                        recipients: recipients,
+                        subject: subject,
+                        message: message,
+                        status: 'sent',
+                        sentAt: new Date()
+                    });
+                    
+                    alert('Email sent successfully to ' + recipients.length + ' recipients');
+                    document.getElementById('emailSubject').value = '';
+                    document.getElementById('emailMessage').value = '';
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            } catch (error) {
+                alert('Error sending email: ' + error.message);
+            } finally {
+                btn.textContent = 'Send Email';
+                btn.disabled = false;
+            }
+        }
+
+        // History management
+        function addToHistory(message) {
+            communicationData.messages.push({
+                id: Date.now().toString(),
+                ...message
+            });
+            communicationData.analytics.total++;
+            if (message.type === 'sms') communicationData.analytics.sms++;
+            if (message.type === 'email') communicationData.analytics.email++;
+            if (message.status === 'sent') communicationData.analytics.success++;
+            
+            saveCommunicationData();
+            updateDashboardStats();
+        }
+
+        function loadMessageHistory() {
+            const historyTable = document.getElementById('historyTable');
+            const filter = document.getElementById('historyFilter').value;
+            
+            let filteredMessages = communicationData.messages;
+            
+            if (filter === 'sms') {
+                filteredMessages = filteredMessages.filter(m => m.type === 'sms');
+            } else if (filter === 'email') {
+                filteredMessages = filteredMessages.filter(m => m.type === 'email');
+            } else if (filter === 'today') {
+                const today = new Date().toDateString();
+                filteredMessages = filteredMessages.filter(m => 
+                    new Date(m.sentAt).toDateString() === today
+                );
+            } else if (filter === 'week') {
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                filteredMessages = filteredMessages.filter(m => 
+                    new Date(m.sentAt) >= weekAgo
+                );
+            }
+            
+            if (filteredMessages.length === 0) {
+                historyTable.innerHTML = '<tr><td colspan="6" class="text-center">No messages found</td></tr>';
+                return;
+            }
+            
+            historyTable.innerHTML = filteredMessages.map(message => `
+                <tr>
+                    <td><span class="badge ${message.type === 'sms' ? 'badge-info' : 'badge-success'}">${message.type.toUpperCase()}</span></td>
+                    <td>${message.recipients.length} recipients</td>
+                    <td>${message.subject || 'N/A'}</td>
+                    <td>${message.message.substring(0, 50)}${message.message.length > 50 ? '...' : ''}</td>
+                    <td><span class="badge badge-success">${message.status}</span></td>
+                    <td>${new Date(message.sentAt).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function refreshHistory() {
+            loadMessageHistory();
+        }
+
+        // Dashboard stats
+        function loadDashboardStats() {
+            updateDashboardStats();
+            loadRecentActivity();
+        }
+
+        function updateDashboardStats() {
+            const total = communicationData.analytics.total;
+            const success = communicationData.analytics.success;
+            const sms = communicationData.analytics.sms;
+            const email = communicationData.analytics.email;
+            const successRate = total > 0 ? Math.round((success / total) * 100) : 0;
+            
+            document.getElementById('totalMessages').textContent = total;
+            document.getElementById('successRate').textContent = successRate + '%';
+            document.getElementById('smsCount').textContent = sms;
+            document.getElementById('emailCount').textContent = email;
+        }
+
+        function loadRecentActivity() {
+            const recentActivity = document.getElementById('recentActivity');
+            const recentMessages = communicationData.messages.slice(-5).reverse();
+            
+            if (recentMessages.length === 0) {
+                recentActivity.innerHTML = '<p class="text-center">No recent activity</p>';
+                return;
+            }
+            
+            recentActivity.innerHTML = recentMessages.map(message => `
+                <div class="mb-2 p-2" style="border-left: 3px solid ${message.type === 'sms' ? 'var(--primary-color)' : 'var(--success-color)'};">
+                    <div class="flex-between">
+                        <strong>${message.type.toUpperCase()}</strong>
+                        <small>${new Date(message.sentAt).toLocaleTimeString()}</small>
+                    </div>
+                    <div>${message.recipients.length} recipients</div>
+                    <div style="font-size: 0.875rem; color: var(--admin-text-secondary);">
+                        ${message.message.substring(0, 60)}${message.message.length > 60 ? '...' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Template functions (placeholder)
+        function loadTemplates() {
+            alert('Template management coming soon!');
+        }
+
+        function saveTemplate(type) {
+            alert('Template saving coming soon!');
+        }
+
+        function loadTemplate(type) {
+            alert('Template loading coming soon!');
+        }
+
+        // Data persistence
+        function loadCommunicationData() {
+            const savedData = APTI_Utils.storage.get('apti_communication_data');
+            if (savedData) {
+                communicationData = savedData;
+            }
+        }
+
+        function saveCommunicationData() {
+            APTI_Utils.storage.set('apti_communication_data', communicationData);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCommunicationData();
+            updateDashboardStats();
+            loadRecentActivity();
+            
+            // Set up event listeners
+            document.getElementById('smsRecipients').addEventListener('change', () => updateRecipientCount('smsRecipients'));
+            document.getElementById('emailRecipients').addEventListener('change', () => updateRecipientCount('emailRecipients'));
+            document.getElementById('historyFilter').addEventListener('change', loadMessageHistory);
+            
+            // Initial counts
+            updateRecipientCount('smsRecipients');
+            updateRecipientCount('emailRecipients');
+        });
+    </script>
+</body>
+</html>

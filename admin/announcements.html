@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Announcements - APTI Property Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../common/css/style.css" />
+    <style>
+        .announcement-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            background: var(--admin-bg);
+            transition: all 0.2s ease;
+        }
+        .announcement-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .announcement-form {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: var(--admin-bg);
+        }
+        .announcement-form .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .announcement-form input,
+        .announcement-form textarea,
+        .announcement-form select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 0.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+        .announcement-form label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .badge-general { background: var(--admin-text-secondary); color: white; }
+        .badge-maintenance { background: #f59e0b; color: white; }
+        .badge-billing { background: #3b82f6; color: white; }
+        .badge-emergency { background: #ef4444; color: white; }
+        .badge-low { background: #6b7280; color: white; }
+        .badge-medium { background: #f59e0b; color: white; }
+        .badge-high { background: #f97316; color: white; }
+        .badge-info { background: #3b82f6; color: white; }
+        .filter-section {
+            background: var(--admin-bg);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        .stats-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            padding: 1rem;
+            background: var(--admin-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--admin-text-secondary);
+        }
+        .attachment-list {
+            margin-top: 0.5rem;
+        }
+        .attachment-item {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .bulk-actions {
+            display: none;
+            padding: 1rem;
+            background: var(--admin-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body class="admin-theme">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="dashboard.html" class="nav-brand">APTI Admin</a>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a href="units.html">Units</a></li>
+                    <li class="nav-item"><a href="tenants.html">Tenants</a></li>
+                    <li class="nav-item"><a href="bills.html">Bills</a></li>
+                    <li class="nav-item"><a href="payment.html">Payments</a></li>
+                    <li class="nav-item"><a href="maintenance.html">Maintenance</a></li>
+                    <li class="nav-item"><a href="announcements.html" class="active">Announcements</a></li>
+                    <li class="nav-item"><a href="document_lease.html">Document Lease</a></li>
+                    <li class="nav-item"><a href="sms_email.html">Communications</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="padding: 2rem 1rem;">
+        <div class="flex-between">
+            <h1>Manage Announcements</h1>
+            <button id="newAnnouncementBtn" class="btn btn-primary">New Announcement</button>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-number" id="totalAnnouncements">0</div>
+                <div class="stat-label">Total Announcements</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="publishedAnnouncements">0</div>
+                <div class="stat-label">Published</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="draftAnnouncements">0</div>
+                <div class="stat-label">Drafts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="emergencyAnnouncements">0</div>
+                <div class="stat-label">Emergency</div>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="filter-section">
+            <h3>Filter Announcements</h3>
+            <div class="grid grid-4">
+                <div class="form-group">
+                    <label class="form-label">Search</label>
+                    <input type="text" id="searchInput" class="form-input" placeholder="Search announcements...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="categoryFilter" class="form-select">
+                        <option value="">All Categories</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="billing">Billing</option>
+                        <option value="general">General</option>
+                        <option value="emergency">Emergency</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Importance</label>
+                    <select id="importanceFilter" class="form-select">
+                        <option value="">All Levels</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="emergency">Emergency</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions" id="bulkActions" style="display: none;">
+            <div class="checkbox-group">
+                <input type="checkbox" id="selectAll" />
+                <label for="selectAll">Select All</label>
+            </div>
+            <div class="btn-group">
+                <button id="bulkPublishBtn" class="btn btn-primary">Publish Selected</button>
+                <button id="bulkDraftBtn" class="btn btn-secondary">Move to Draft</button>
+                <button id="bulkDeleteBtn" class="btn btn-danger">Delete Selected</button>
+            </div>
+        </div>
+
+        <!-- Announcement Form -->
+        <form id="announcementForm" class="announcement-form" style="display: none;">
+            <input type="hidden" id="announcementId" />
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" class="form-input" placeholder="Announcement title" required />
+                </div>
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" class="form-input" placeholder="Property Manager" value="Property Manager" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="content">Content *</label>
+                <textarea id="content" rows="4" class="form-input" placeholder="Announcement content" required></textarea>
+            </div>
+
+            <div class="grid grid-4">
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" class="form-select">
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" class="form-select">
+                        <option value="general">General</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="billing">Billing</option>
+                        <option value="emergency">Emergency</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="importance">Importance</label>
+                    <select id="importance" class="form-select">
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                        <option value="high">High</option>
+                        <option value="emergency">Emergency</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expiresAt">Expires At</label>
+                    <input type="datetime-local" id="expiresAt" class="form-input" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="attachments">Attachments</label>
+                <input type="file" id="attachments" class="form-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                <div id="attachmentList" class="attachment-list"></div>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">Save Announcement</button>
+                <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
+
+        <!-- Announcements List -->
+        <div id="announcementsList">
+            <div style="text-align: center; color: var(--admin-text-secondary); padding: 2rem;">
+                Loading announcements...
+            </div>
+        </div>
+    </div>
+
+    <script src="../common/js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!APTI_Auth.checkAuthentication('admin')) {
+                return;
+            }
+
+            const form = document.getElementById('announcementForm');
+            const announcementsList = document.getElementById('announcementsList');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+            let announcements = [];
+
+            function renderAnnouncements() {
+                if (announcements.length === 0) {
+                    announcementsList.innerHTML = '<p>No announcements found.</p>';
+                    return;
+                }
+
+                announcementsList.innerHTML = announcements.map(a => `
+                    <div class="announcement-card">
+                        <h3>${a.title}</h3>
+                        <p>${a.content}</p>
+                        <p>Status: <strong>${a.status}</strong></p>
+                        <p>Published At: ${a.publishedAt ? new Date(a.publishedAt).toLocaleString() : 'N/A'}</p>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary btn-small" onclick="editAnnouncement('${a.id}')">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteAnnouncement('${a.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async function loadAnnouncements() {
+                const result = await APTI_Admin.AnnouncementsManager.getAll();
+                if (result.success) {
+                    announcements = result.data;
+                    renderAnnouncements();
+                } else {
+                    announcementsList.innerHTML = '<p>Error loading announcements.</p>';
+                }
+            }
+
+            async function saveAnnouncement(event) {
+                event.preventDefault();
+                const id = document.getElementById('announcementId').value;
+                const title = document.getElementById('title').value.trim();
+                const content = document.getElementById('content').value.trim();
+                const status = document.getElementById('status').value;
+
+                if (!title || !content) {
+                    alert('Title and content are required.');
+                    return;
+                }
+
+                if (id) {
+                    // Update existing
+                    const result = await APTI_Admin.AnnouncementsManager.update(id, { title, content, status });
+                    if (result.success) {
+                        alert('Announcement updated successfully.');
+                        resetForm();
+                        loadAnnouncements();
+                    } else {
+                        alert('Error updating announcement: ' + result.error);
+                    }
+                } else {
+                    // Create new
+                    const result = await APTI_Admin.AnnouncementsManager.create({ title, content, status });
+                    if (result.success) {
+                        alert('Announcement created successfully.');
+                        resetForm();
+                        loadAnnouncements();
+                    } else {
+                        alert('Error creating announcement: ' + result.error);
+                    }
+                }
+            }
+
+            function editAnnouncement(id) {
+                const announcement = announcements.find(a => a.id === id);
+                if (!announcement) return;
+                document.getElementById('announcementId').value = announcement.id;
+                document.getElementById('title').value = announcement.title;
+                document.getElementById('content').value = announcement.content;
+                document.getElementById('status').value = announcement.status;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            async function deleteAnnouncement(id) {
+                if (!confirm('Are you sure you want to delete this announcement?')) return;
+                const result = await APTI_Admin.AnnouncementsManager.delete(id);
+                if (result.success) {
+                    alert('Announcement deleted successfully.');
+                    loadAnnouncements();
+                } else {
+                    alert('Error deleting announcement: ' + result.error);
+                }
+            }
+
+            function resetForm() {
+                form.reset();
+                document.getElementById('announcementId').value = '';
+            }
+
+            cancelEditBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                resetForm();
+            });
+
+            form.addEventListener('submit', saveAnnouncement);
+
+            loadAnnouncements();
+        });
+    </script>
+</body>
+</html>
